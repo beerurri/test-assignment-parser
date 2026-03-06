@@ -23,12 +23,16 @@ def collect_cards(client: WildberriesClient, products: list, max_workers: int = 
         products = products[:CARDS_LIMIT]
 
     def _fetch(product_json, index, total):
-        article = product_json['id']
-        logger.info(f'Collecting card {index+1} out of {total} - Article: {article}')
-        # получаем JSON карточки и хост корзины
-        card = client.get_product_card(article)
-        basket = client.get_basket(article)
-        return parse_product_card(card, product_json, basket)
+        try:
+            article = product_json['id']
+            logger.info(f'Collecting card {index+1} out of {total} - Article: {article}')
+            # получаем JSON карточки и хост корзины
+            card = client.get_product_card(article)
+            basket = client.get_basket(article)
+            return parse_product_card(card, product_json, basket)
+        except Exception as e:
+            logger.exception(f'Error collecting card for article {product_json["id"]}: {e}')
+            return None
 
     results = []
     total = len(products)
@@ -38,7 +42,11 @@ def collect_cards(client: WildberriesClient, products: list, max_workers: int = 
                    for i, p in enumerate(products)]
 
         for fut in as_completed(futures):
-            results.append(fut.result())
+            res = fut.result()
+            if res:
+                results.append(res)
+            else:
+                logger.warning('A card failed to collect and will be skipped.')
 
     return results
 
