@@ -1,3 +1,8 @@
+"""Pydantic-модель, описывающая товар.
+
+Каждое поле имеет alias - имя столбца в итоговой Excel-таблице.
+"""
+
 from pydantic import BaseModel, Field, ConfigDict
 
 

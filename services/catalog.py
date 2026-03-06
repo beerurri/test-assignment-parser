@@ -1,3 +1,9 @@
+"""Модуль для сбора плоского каталога товаров.
+
+Выполняет поиск по QUERY и обходит все страницы, возвращая
+список сырых словарей с атрибутами каждого товара.
+"""
+
 from config.settings import QUERY
 from api.wildberries_client import WildberriesClient
 import logging

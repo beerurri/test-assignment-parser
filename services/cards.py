@@ -1,3 +1,10 @@
+"""Парсинг карточек товаров и преобразование в модели Product.
+
+Функция collect_cards принимает список словарей из каталога и
+параллельно (ThreadPoolExecutor) запрашивает карточку и хост корзины
+для каждого товара, затем вызывает parse_product_card.
+"""
+
 import logging
 
 from config.settings import VOL_DIVISOR, PART_DIVISOR, CARDS_LIMIT, CARD_POOL_WORKERS
@@ -11,12 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 def collect_cards(client: WildberriesClient, products: list, max_workers: int = CARD_POOL_WORKERS):
+    # для отладки можно ограничить количество карточек
     if CARDS_LIMIT:
         products = products[:CARDS_LIMIT]
 
     def _fetch(product_json, index, total):
         article = product_json['id']
         logger.info(f'Collecting card {index+1} out of {total} - Article: {article}')
+        # получаем JSON карточки и хост корзины
         card = client.get_product_card(article)
         basket = client.get_basket(article)
         return parse_product_card(card, product_json, basket)
@@ -35,6 +44,8 @@ def collect_cards(client: WildberriesClient, products: list, max_workers: int = 
 
 
 def parse_product_card(card_json: dict, product_json: dict, basket: str):
+    """Собирает объект Product из сырых данных карточки и каталога.
+    """
     properties = extract_properties(card_json)
     return Product(
         url=f'https://www.wildberries.ru/catalog/{product_json["id"]}/detail.aspx',
@@ -69,6 +80,8 @@ def extract_properties(card_json: dict):
 
 
 def extract_price(product_json: dict):
+    """Ищет первую попавшуюся цену в описании размеров товара.
+    """
     sizes = product_json.get('sizes', [])
     if sizes:
         for size in sizes:

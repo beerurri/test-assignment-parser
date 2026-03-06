@@ -12,12 +12,21 @@ def _get_alias_map():
 
 
 def export_catalog(products: List[Product]):
+    """Сохраняет полный каталог в файл catalog.xlsx.
+
+    Поля выводятся с русскими названиями, заданными через alias в модели.
+    """
     data = [p.model_dump(by_alias=True) for p in products]
     df = pd.DataFrame(data)
     df.to_excel('catalog.xlsx', index=False)
 
 
 def export_filtered(products: List[Product]):
+    """Экспортирует отфильтрованный набор товаров.
+
+    Фильтрация выполняется до применения алиасов, затем имя колонок
+    меняются на русские перед записью.
+    """
     data = [p.model_dump() for p in products]
     df = pd.DataFrame(data)
 

@@ -7,11 +7,22 @@ from config.settings import VOL_DIVISOR, PART_DIVISOR
 
 
 class WildberriesClient:
+    """HTTP‑клиент для Wildberries.
+
+    Позволяет выполнять поисковые запросы, получать содержимое карточки товара
+    и определять хост корзины (CDN) для заданного идентификатора.
+    """
+
     def __init__(self, session):
         self.session = session
+        # диапазоны vol/part читаются один раз при создании
         self.vol_ranges = self.get_cdn_ranges()
 
     def get_cdn_ranges(self):
+        """Загружает карту хостов из CDN WB.
+
+        Отдаёт список словарей с ключами vol_range_from/vol_range_to и host.
+        """
         url = f'https://cdn.wbbasket.ru/api/v3/upstreams?t={int(time.time()*1000)}'
         response = request_with_backoff(self.session, url)
         data = response.json()
@@ -27,6 +38,12 @@ class WildberriesClient:
         raise ValueError(f'Volume {vol} out of range')
 
     def search(self, query, page):
+        """Выполняет точный поиск по запросу и возвращает JSON ответа.
+
+        Аргументы:
+            query: строка поиска
+            page: номер страницы пагинации
+        """
         query_encoded = urllib.parse.quote_plus(query)
         url = (
             'https://www.wildberries.ru/__internal/u-search/exactmatch/ru/common/v18/search'
@@ -49,6 +66,11 @@ class WildberriesClient:
         return response.json()
 
     def get_product_card(self, product_id):
+        """Возвращает JSON-словарь карточки товара по его ID.
+
+        Сначала определяем правильный хост через get_basket,
+        затем запрашиваем файл card.json.
+        """
         vol = product_id // VOL_DIVISOR
         part = product_id // PART_DIVISOR
         host = self.get_basket(product_id)

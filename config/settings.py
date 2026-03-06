@@ -7,7 +7,7 @@ VOL_DIVISOR = 100_000
 PART_DIVISOR = 1000
 
 CARD_POOL_WORKERS = 50
-CARDS_LIMIT = 100  # Set to an integer to limit the number of cards fetched (for testing)
+CARDS_LIMIT = None  # Set to an integer to limit the number of cards fetched (for testing)
 
 HEADERS = {
     'accept': '*/*',
